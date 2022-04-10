@@ -176,6 +176,7 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->ast);
     Py_CLEAR(state->attr);
     Py_CLEAR(state->bases);
+    Py_CLEAR(state->bind_attr);
     Py_CLEAR(state->body);
     Py_CLEAR(state->boolop_type);
     Py_CLEAR(state->cases);
@@ -223,7 +224,6 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->level);
     Py_CLEAR(state->lineno);
     Py_CLEAR(state->lower);
-    Py_CLEAR(state->mark);
     Py_CLEAR(state->match_case_type);
     Py_CLEAR(state->mod_type);
     Py_CLEAR(state->module);
@@ -286,6 +286,7 @@ static int init_identifiers(struct ast_state *state)
     if ((state->ast = PyUnicode_InternFromString("ast")) == NULL) return 0;
     if ((state->attr = PyUnicode_InternFromString("attr")) == NULL) return 0;
     if ((state->bases = PyUnicode_InternFromString("bases")) == NULL) return 0;
+    if ((state->bind_attr = PyUnicode_InternFromString("bind_attr")) == NULL) return 0;
     if ((state->body = PyUnicode_InternFromString("body")) == NULL) return 0;
     if ((state->cases = PyUnicode_InternFromString("cases")) == NULL) return 0;
     if ((state->cause = PyUnicode_InternFromString("cause")) == NULL) return 0;
@@ -326,7 +327,6 @@ static int init_identifiers(struct ast_state *state)
     if ((state->level = PyUnicode_InternFromString("level")) == NULL) return 0;
     if ((state->lineno = PyUnicode_InternFromString("lineno")) == NULL) return 0;
     if ((state->lower = PyUnicode_InternFromString("lower")) == NULL) return 0;
-    if ((state->mark = PyUnicode_InternFromString("mark")) == NULL) return 0;
     if ((state->module = PyUnicode_InternFromString("module")) == NULL) return 0;
     if ((state->msg = PyUnicode_InternFromString("msg")) == NULL) return 0;
     if ((state->name = PyUnicode_InternFromString("name")) == NULL) return 0;
@@ -680,7 +680,7 @@ static const char * const arg_fields[]={
     "arg",
     "annotation",
     "type_comment",
-    "mark",
+    "bind_attr",
 };
 static PyObject* ast2obj_keyword(struct ast_state *state, void*);
 static const char * const keyword_attributes[] = {
@@ -1733,14 +1733,14 @@ init_types(struct ast_state *state)
     if (PyObject_SetAttr(state->arguments_type, state->kwarg, Py_None) == -1)
         return 0;
     state->arg_type = make_type(state, "arg", state->AST_type, arg_fields, 4,
-        "arg(identifier arg, expr? annotation, string? type_comment, int? mark)");
+        "arg(identifier arg, expr? annotation, string? type_comment, int? bind_attr)");
     if (!state->arg_type) return 0;
     if (!add_attributes(state, state->arg_type, arg_attributes, 4)) return 0;
     if (PyObject_SetAttr(state->arg_type, state->annotation, Py_None) == -1)
         return 0;
     if (PyObject_SetAttr(state->arg_type, state->type_comment, Py_None) == -1)
         return 0;
-    if (PyObject_SetAttr(state->arg_type, state->mark, Py_None) == -1)
+    if (PyObject_SetAttr(state->arg_type, state->bind_attr, Py_None) == -1)
         return 0;
     if (PyObject_SetAttr(state->arg_type, state->end_lineno, Py_None) == -1)
         return 0;
@@ -3324,9 +3324,9 @@ _PyAST_arguments(asdl_arg_seq * posonlyargs, asdl_arg_seq * args, arg_ty
 }
 
 arg_ty
-_PyAST_arg(identifier arg, expr_ty annotation, string type_comment, int mark,
-           int lineno, int col_offset, int end_lineno, int end_col_offset,
-           PyArena *arena)
+_PyAST_arg(identifier arg, expr_ty annotation, string type_comment, int
+           bind_attr, int lineno, int col_offset, int end_lineno, int
+           end_col_offset, PyArena *arena)
 {
     arg_ty p;
     if (!arg) {
@@ -3340,7 +3340,7 @@ _PyAST_arg(identifier arg, expr_ty annotation, string type_comment, int mark,
     p->arg = arg;
     p->annotation = annotation;
     p->type_comment = type_comment;
-    p->mark = mark;
+    p->bind_attr = bind_attr;
     p->lineno = lineno;
     p->col_offset = col_offset;
     p->end_lineno = end_lineno;
@@ -5019,9 +5019,9 @@ ast2obj_arg(struct ast_state *state, void* _o)
     if (PyObject_SetAttr(result, state->type_comment, value) == -1)
         goto failed;
     Py_DECREF(value);
-    value = ast2obj_int(state, o->mark);
+    value = ast2obj_int(state, o->bind_attr);
     if (!value) goto failed;
-    if (PyObject_SetAttr(result, state->mark, value) == -1)
+    if (PyObject_SetAttr(result, state->bind_attr, value) == -1)
         goto failed;
     Py_DECREF(value);
     value = ast2obj_int(state, o->lineno);
@@ -10671,7 +10671,7 @@ obj2ast_arg(struct ast_state *state, PyObject* obj, arg_ty* out, PyArena* arena)
     identifier arg;
     expr_ty annotation;
     string type_comment;
-    int mark;
+    int bind_attr;
     int lineno;
     int col_offset;
     int end_lineno;
@@ -10728,19 +10728,19 @@ obj2ast_arg(struct ast_state *state, PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, state->mark, &tmp) < 0) {
+    if (_PyObject_LookupAttr(obj, state->bind_attr, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
         Py_CLEAR(tmp);
-        mark = 0;
+        bind_attr = 0;
     }
     else {
         int res;
         if (Py_EnterRecursiveCall(" while traversing 'arg' node")) {
             goto failed;
         }
-        res = obj2ast_int(state, tmp, &mark, arena);
+        res = obj2ast_int(state, tmp, &bind_attr, arena);
         Py_LeaveRecursiveCall();
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
@@ -10813,8 +10813,8 @@ obj2ast_arg(struct ast_state *state, PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    *out = _PyAST_arg(arg, annotation, type_comment, mark, lineno, col_offset,
-                      end_lineno, end_col_offset, arena);
+    *out = _PyAST_arg(arg, annotation, type_comment, bind_attr, lineno,
+                      col_offset, end_lineno, end_col_offset, arena);
     return 0;
 failed:
     Py_XDECREF(tmp);

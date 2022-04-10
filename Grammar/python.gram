@@ -344,10 +344,10 @@ param_maybe_default[NameDefaultPair*]:
     | a=param c=default? ',' tc=TYPE_COMMENT? { _PyPegen_name_default_pair(p, a, c, tc) }
     | a=param c=default? tc=TYPE_COMMENT? &')' { _PyPegen_name_default_pair(p, a, c, tc) }
 param[arg_ty]: 
-    | mark='@' a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
+    | '@' a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
     | a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, 0, EXTRA) }
 param_star_annotation[arg_ty]: 
-    | mark='@' a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
+    | '@' a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
     | a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, 0, EXTRA) }
 annotation[expr_ty]: ':' a=expression { a }
 star_annotation[expr_ty]: ':' a=star_expression { a }

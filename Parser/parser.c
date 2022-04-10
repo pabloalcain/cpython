@@ -5518,11 +5518,11 @@ param_rule(Parser *p)
             return NULL;
         }
         D(fprintf(stderr, "%*c> param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@' NAME annotation?"));
+        Token * _literal;
         expr_ty a;
         void *b;
-        Token * mark;
         if (
-            (mark = _PyPegen_expect_token(p, 49))  // token='@'
+            (_literal = _PyPegen_expect_token(p, 49))  // token='@'
             &&
             (a = _PyPegen_name_token(p))  // NAME
             &&
@@ -5622,11 +5622,11 @@ param_star_annotation_rule(Parser *p)
             return NULL;
         }
         D(fprintf(stderr, "%*c> param_star_annotation[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@' NAME star_annotation"));
+        Token * _literal;
         expr_ty a;
         expr_ty b;
-        Token * mark;
         if (
-            (mark = _PyPegen_expect_token(p, 49))  // token='@'
+            (_literal = _PyPegen_expect_token(p, 49))  // token='@'
             &&
             (a = _PyPegen_name_token(p))  // NAME
             &&

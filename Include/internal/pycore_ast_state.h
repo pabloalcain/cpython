@@ -162,6 +162,7 @@ struct ast_state {
     PyObject *ast;
     PyObject *attr;
     PyObject *bases;
+    PyObject *bind_attr;
     PyObject *body;
     PyObject *boolop_type;
     PyObject *cases;
@@ -209,7 +210,6 @@ struct ast_state {
     PyObject *level;
     PyObject *lineno;
     PyObject *lower;
-    PyObject *mark;
     PyObject *match_case_type;
     PyObject *mod_type;
     PyObject *module;

@@ -1033,7 +1033,7 @@ _PyPegen_add_type_comment_to_arg(Parser *p, arg_ty a, Token *tc)
     if (tco == NULL) {
         return NULL;
     }
-    return _PyAST_arg(a->arg, a->annotation, tco, a->mark,
+    return _PyAST_arg(a->arg, a->annotation, tco, a->bind_attr,
                       a->lineno, a->col_offset, a->end_lineno, a->end_col_offset,
                       p->arena);
 }
