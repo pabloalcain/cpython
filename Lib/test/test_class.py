@@ -584,6 +584,13 @@ class ClassTests(unittest.TestCase):
         a = A(hash(A.f)^(-1))
         hash(a.f)
 
+    def testAutoAttributeSyntaxAllowed(self):
+        class A:
+            def __init__(self, @x):
+                pass
+
+        a = A(1)
+
     def testSetattrWrapperNameIntern(self):
         # Issue #25794: __setattr__ should intern the attribute name
         class A:

@@ -1020,6 +1020,12 @@ _PyPegen_new_type_comment(Parser *p, const char *s)
 }
 
 arg_ty
+_PyPegen_set_arg_as_attr(Parser *p, arg_ty a, char *mark) {
+    a->mark = mark;
+    return a;
+}
+
+arg_ty
 _PyPegen_add_type_comment_to_arg(Parser *p, arg_ty a, Token *tc)
 {
     if (tc == NULL) {
@@ -1033,7 +1039,7 @@ _PyPegen_add_type_comment_to_arg(Parser *p, arg_ty a, Token *tc)
     if (tco == NULL) {
         return NULL;
     }
-    return _PyAST_arg(a->arg, a->annotation, tco,
+    return _PyAST_arg(a->arg, a->annotation, tco, a->mark,
                       a->lineno, a->col_offset, a->end_lineno, a->end_col_offset,
                       p->arena);
 }

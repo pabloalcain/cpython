@@ -282,6 +282,7 @@ INVALID_VERSION_CHECK(Parser *p, int version, char *msg, void *node)
 #define CHECK_VERSION(type, version, msg, node) ((type) INVALID_VERSION_CHECK(p, version, msg, node))
 
 arg_ty _PyPegen_add_type_comment_to_arg(Parser *, arg_ty, Token *);
+arg_ty _PyPegen_set_arg_as_attr(Parser *, arg_ty, char *);
 PyObject *_PyPegen_new_identifier(Parser *, const char *);
 asdl_seq *_PyPegen_singleton_seq(Parser *, void *);
 asdl_seq *_PyPegen_seq_insert_in_front(Parser *, void *, asdl_seq *);

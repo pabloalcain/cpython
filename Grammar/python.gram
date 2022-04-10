@@ -331,7 +331,6 @@ kwds[arg_ty]:
 # - No comma, optional type comment, must be followed by close paren
 # The latter form is for a final parameter without trailing comma.
 #
-
 param_no_default[arg_ty]:
     | a=param ',' tc=TYPE_COMMENT? { _PyPegen_add_type_comment_to_arg(p, a, tc) }
     | a=param tc=TYPE_COMMENT? &')' { _PyPegen_add_type_comment_to_arg(p, a, tc) }
@@ -344,8 +343,8 @@ param_with_default[NameDefaultPair*]:
 param_maybe_default[NameDefaultPair*]:
     | a=param c=default? ',' tc=TYPE_COMMENT? { _PyPegen_name_default_pair(p, a, c, tc) }
     | a=param c=default? tc=TYPE_COMMENT? &')' { _PyPegen_name_default_pair(p, a, c, tc) }
-param[arg_ty]: a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, EXTRA) }
-param_star_annotation[arg_ty]: a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, EXTRA) }
+param[arg_ty]: mark='@'? a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, mark, EXTRA) }
+param_star_annotation[arg_ty]: mark='@'? a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, mark, EXTRA) }
 annotation[expr_ty]: ':' a=expression { a }
 star_annotation[expr_ty]: ':' a=star_expression { a }
 default[expr_ty]: '=' a=expression { a } | invalid_default
@@ -865,7 +864,7 @@ lambda_param_with_default[NameDefaultPair*]:
 lambda_param_maybe_default[NameDefaultPair*]:
     | a=lambda_param c=default? ',' { _PyPegen_name_default_pair(p, a, c, NULL) }
     | a=lambda_param c=default? &':' { _PyPegen_name_default_pair(p, a, c, NULL) }
-lambda_param[arg_ty]: a=NAME { _PyAST_arg(a->v.Name.id, NULL, NULL, EXTRA) }
+lambda_param[arg_ty]: a=NAME { _PyAST_arg(a->v.Name.id, NULL, NULL, NULL, EXTRA) }
 
 # LITERALS
 # ========

@@ -3319,8 +3319,9 @@ _PyAST_arguments(asdl_arg_seq * posonlyargs, asdl_arg_seq * args, arg_ty
 }
 
 arg_ty
-_PyAST_arg(identifier arg, expr_ty annotation, string type_comment, int lineno,
-           int col_offset, int end_lineno, int end_col_offset, PyArena *arena)
+_PyAST_arg(identifier arg, expr_ty annotation, string type_comment, char* mark, 
+           int lineno, int col_offset, int end_lineno, int end_col_offset,
+           PyArena *arena)
 {
     arg_ty p;
     if (!arg) {
@@ -3334,6 +3335,7 @@ _PyAST_arg(identifier arg, expr_ty annotation, string type_comment, int lineno,
     p->arg = arg;
     p->annotation = annotation;
     p->type_comment = type_comment;
+    p->mark = mark;
     p->lineno = lineno;
     p->col_offset = col_offset;
     p->end_lineno = end_lineno;
@@ -10462,7 +10464,7 @@ obj2ast_arguments(struct ast_state *state, PyObject* obj, arguments_ty* out,
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, state->args, &tmp) < 0) {
+    if (_PyObject_LookupAttr(obj, state->args, &tmp) < 0) { 
         return 1;
     }
     if (tmp == NULL) {
@@ -10783,7 +10785,7 @@ obj2ast_arg(struct ast_state *state, PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    *out = _PyAST_arg(arg, annotation, type_comment, lineno, col_offset,
+    *out = _PyAST_arg(arg, annotation, type_comment, "", lineno, col_offset,
                       end_lineno, end_col_offset, arena);
     return 0;
 failed:
