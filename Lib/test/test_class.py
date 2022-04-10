@@ -591,6 +591,14 @@ class ClassTests(unittest.TestCase):
 
         a = A(1)
 
+    def testAutoAttribute(self):
+        class A:
+            def __init__(self, @x):
+                pass
+
+        a = A(1)
+        self.assertEqual(a.x, 1)
+
     def testSetattrWrapperNameIntern(self):
         # Issue #25794: __setattr__ should intern the attribute name
         class A:

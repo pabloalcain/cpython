@@ -5489,7 +5489,7 @@ param_maybe_default_rule(Parser *p)
     return _res;
 }
 
-// param: '@'? NAME annotation?
+// param: '@' NAME annotation? | NAME annotation?
 static arg_ty
 param_rule(Parser *p)
 {
@@ -5512,24 +5512,24 @@ param_rule(Parser *p)
     UNUSED(_start_lineno); // Only used by EXTRA macro
     int _start_col_offset = p->tokens[_mark]->col_offset;
     UNUSED(_start_col_offset); // Only used by EXTRA macro
-    { // '@'? NAME annotation?
+    { // '@' NAME annotation?
         if (p->error_indicator) {
             p->level--;
             return NULL;
         }
-        D(fprintf(stderr, "%*c> param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@'? NAME annotation?"));
+        D(fprintf(stderr, "%*c> param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@' NAME annotation?"));
         expr_ty a;
         void *b;
-        void *mark;
+        Token * mark;
         if (
-            (mark = _PyPegen_expect_token(p, 49), !p->error_indicator)  // '@'?
+            (mark = _PyPegen_expect_token(p, 49))  // token='@'
             &&
             (a = _PyPegen_name_token(p))  // NAME
             &&
             (b = annotation_rule(p), !p->error_indicator)  // annotation?
         )
         {
-            D(fprintf(stderr, "%*c+ param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'@'? NAME annotation?"));
+            D(fprintf(stderr, "%*c+ param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'@' NAME annotation?"));
             Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
             if (_token == NULL) {
                 p->level--;
@@ -5539,7 +5539,7 @@ param_rule(Parser *p)
             UNUSED(_end_lineno); // Only used by EXTRA macro
             int _end_col_offset = _token->end_col_offset;
             UNUSED(_end_col_offset); // Only used by EXTRA macro
-            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , mark , EXTRA );
+            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , 1 , EXTRA );
             if (_res == NULL && PyErr_Occurred()) {
                 p->error_indicator = 1;
                 p->level--;
@@ -5549,7 +5549,43 @@ param_rule(Parser *p)
         }
         p->mark = _mark;
         D(fprintf(stderr, "%*c%s param[%d-%d]: %s failed!\n", p->level, ' ',
-                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'@'? NAME annotation?"));
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'@' NAME annotation?"));
+    }
+    { // NAME annotation?
+        if (p->error_indicator) {
+            p->level--;
+            return NULL;
+        }
+        D(fprintf(stderr, "%*c> param[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "NAME annotation?"));
+        expr_ty a;
+        void *b;
+        if (
+            (a = _PyPegen_name_token(p))  // NAME
+            &&
+            (b = annotation_rule(p), !p->error_indicator)  // annotation?
+        )
+        {
+            D(fprintf(stderr, "%*c+ param[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "NAME annotation?"));
+            Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+            if (_token == NULL) {
+                p->level--;
+                return NULL;
+            }
+            int _end_lineno = _token->end_lineno;
+            UNUSED(_end_lineno); // Only used by EXTRA macro
+            int _end_col_offset = _token->end_col_offset;
+            UNUSED(_end_col_offset); // Only used by EXTRA macro
+            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , 0 , EXTRA );
+            if (_res == NULL && PyErr_Occurred()) {
+                p->error_indicator = 1;
+                p->level--;
+                return NULL;
+            }
+            goto done;
+        }
+        p->mark = _mark;
+        D(fprintf(stderr, "%*c%s param[%d-%d]: %s failed!\n", p->level, ' ',
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "NAME annotation?"));
     }
     _res = NULL;
   done:
@@ -5557,7 +5593,7 @@ param_rule(Parser *p)
     return _res;
 }
 
-// param_star_annotation: '@'? NAME star_annotation
+// param_star_annotation: '@' NAME star_annotation | NAME star_annotation
 static arg_ty
 param_star_annotation_rule(Parser *p)
 {
@@ -5580,24 +5616,24 @@ param_star_annotation_rule(Parser *p)
     UNUSED(_start_lineno); // Only used by EXTRA macro
     int _start_col_offset = p->tokens[_mark]->col_offset;
     UNUSED(_start_col_offset); // Only used by EXTRA macro
-    { // '@'? NAME star_annotation
+    { // '@' NAME star_annotation
         if (p->error_indicator) {
             p->level--;
             return NULL;
         }
-        D(fprintf(stderr, "%*c> param_star_annotation[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@'? NAME star_annotation"));
+        D(fprintf(stderr, "%*c> param_star_annotation[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'@' NAME star_annotation"));
         expr_ty a;
         expr_ty b;
-        void *mark;
+        Token * mark;
         if (
-            (mark = _PyPegen_expect_token(p, 49), !p->error_indicator)  // '@'?
+            (mark = _PyPegen_expect_token(p, 49))  // token='@'
             &&
             (a = _PyPegen_name_token(p))  // NAME
             &&
             (b = star_annotation_rule(p))  // star_annotation
         )
         {
-            D(fprintf(stderr, "%*c+ param_star_annotation[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'@'? NAME star_annotation"));
+            D(fprintf(stderr, "%*c+ param_star_annotation[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'@' NAME star_annotation"));
             Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
             if (_token == NULL) {
                 p->level--;
@@ -5607,7 +5643,7 @@ param_star_annotation_rule(Parser *p)
             UNUSED(_end_lineno); // Only used by EXTRA macro
             int _end_col_offset = _token->end_col_offset;
             UNUSED(_end_col_offset); // Only used by EXTRA macro
-            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , mark , EXTRA );
+            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , 1 , EXTRA );
             if (_res == NULL && PyErr_Occurred()) {
                 p->error_indicator = 1;
                 p->level--;
@@ -5617,7 +5653,43 @@ param_star_annotation_rule(Parser *p)
         }
         p->mark = _mark;
         D(fprintf(stderr, "%*c%s param_star_annotation[%d-%d]: %s failed!\n", p->level, ' ',
-                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'@'? NAME star_annotation"));
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'@' NAME star_annotation"));
+    }
+    { // NAME star_annotation
+        if (p->error_indicator) {
+            p->level--;
+            return NULL;
+        }
+        D(fprintf(stderr, "%*c> param_star_annotation[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "NAME star_annotation"));
+        expr_ty a;
+        expr_ty b;
+        if (
+            (a = _PyPegen_name_token(p))  // NAME
+            &&
+            (b = star_annotation_rule(p))  // star_annotation
+        )
+        {
+            D(fprintf(stderr, "%*c+ param_star_annotation[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "NAME star_annotation"));
+            Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+            if (_token == NULL) {
+                p->level--;
+                return NULL;
+            }
+            int _end_lineno = _token->end_lineno;
+            UNUSED(_end_lineno); // Only used by EXTRA macro
+            int _end_col_offset = _token->end_col_offset;
+            UNUSED(_end_col_offset); // Only used by EXTRA macro
+            _res = _PyAST_arg ( a -> v . Name . id , b , NULL , 0 , EXTRA );
+            if (_res == NULL && PyErr_Occurred()) {
+                p->error_indicator = 1;
+                p->level--;
+                return NULL;
+            }
+            goto done;
+        }
+        p->mark = _mark;
+        D(fprintf(stderr, "%*c%s param_star_annotation[%d-%d]: %s failed!\n", p->level, ' ',
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "NAME star_annotation"));
     }
     _res = NULL;
   done:
@@ -15418,7 +15490,7 @@ lambda_param_rule(Parser *p)
             UNUSED(_end_lineno); // Only used by EXTRA macro
             int _end_col_offset = _token->end_col_offset;
             UNUSED(_end_col_offset); // Only used by EXTRA macro
-            _res = _PyAST_arg ( a -> v . Name . id , NULL , NULL , NULL , EXTRA );
+            _res = _PyAST_arg ( a -> v . Name . id , NULL , NULL , 0 , EXTRA );
             if (_res == NULL && PyErr_Occurred()) {
                 p->error_indicator = 1;
                 p->level--;

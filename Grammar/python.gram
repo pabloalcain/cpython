@@ -343,8 +343,12 @@ param_with_default[NameDefaultPair*]:
 param_maybe_default[NameDefaultPair*]:
     | a=param c=default? ',' tc=TYPE_COMMENT? { _PyPegen_name_default_pair(p, a, c, tc) }
     | a=param c=default? tc=TYPE_COMMENT? &')' { _PyPegen_name_default_pair(p, a, c, tc) }
-param[arg_ty]: mark='@'? a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, mark, EXTRA) }
-param_star_annotation[arg_ty]: mark='@'? a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, mark, EXTRA) }
+param[arg_ty]: 
+    | mark='@' a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
+    | a=NAME b=annotation? { _PyAST_arg(a->v.Name.id, b, NULL, 0, EXTRA) }
+param_star_annotation[arg_ty]: 
+    | mark='@' a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, 1, EXTRA) }
+    | a=NAME b=star_annotation { _PyAST_arg(a->v.Name.id, b, NULL, 0, EXTRA) }
 annotation[expr_ty]: ':' a=expression { a }
 star_annotation[expr_ty]: ':' a=star_expression { a }
 default[expr_ty]: '=' a=expression { a } | invalid_default
@@ -864,7 +868,7 @@ lambda_param_with_default[NameDefaultPair*]:
 lambda_param_maybe_default[NameDefaultPair*]:
     | a=lambda_param c=default? ',' { _PyPegen_name_default_pair(p, a, c, NULL) }
     | a=lambda_param c=default? &':' { _PyPegen_name_default_pair(p, a, c, NULL) }
-lambda_param[arg_ty]: a=NAME { _PyAST_arg(a->v.Name.id, NULL, NULL, NULL, EXTRA) }
+lambda_param[arg_ty]: a=NAME { _PyAST_arg(a->v.Name.id, NULL, NULL, 0, EXTRA) }
 
 # LITERALS
 # ========
