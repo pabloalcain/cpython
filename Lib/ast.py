@@ -1533,6 +1533,8 @@ class _Unparser(NodeVisitor):
                 first = False
             else:
                 self.write(", ")
+            if a.bind_attr:
+                self.write("@")
             self.traverse(a)
             if d:
                 self.write("=")
@@ -1557,6 +1559,8 @@ class _Unparser(NodeVisitor):
         if node.kwonlyargs:
             for a, d in zip(node.kwonlyargs, node.kw_defaults):
                 self.write(", ")
+                if a.bind_attr:
+                    self.write("@")
                 self.traverse(a)
                 if d:
                     self.write("=")

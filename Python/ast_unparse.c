@@ -202,6 +202,9 @@ append_ast_unaryop(_PyUnicodeWriter *writer, expr_ty e, int level)
 static int
 append_ast_arg(_PyUnicodeWriter *writer, arg_ty arg)
 {
+    if (arg->bind_attr) {
+        APPEND_STR("@");
+    }
     if (-1 == _PyUnicodeWriter_WriteStr(writer, arg->arg)) {
         return -1;
     }

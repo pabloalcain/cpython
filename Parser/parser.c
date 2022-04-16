@@ -4453,43 +4453,7 @@ function_def_raw_rule(Parser *p)
             UNUSED(_end_lineno); // Only used by EXTRA macro
             int _end_col_offset = _token->end_col_offset;
             UNUSED(_end_col_offset); // Only used by EXTRA macro
-            
-            asdl_stmt_seq * new_body = b;
-
-// The first argument should be self
-arguments_ty params_alt = ( params ) ? params : CHECK ( arguments_ty , _PyPegen_empty_arguments ( p ) );
-
-if (params_alt){
-Py_ssize_t n_posonlyargs = asdl_seq_LEN(((arguments_ty)params_alt)->args);
-
-if (n_posonlyargs > 1) {
-    // The second one should be a @var
-    identifier self_id = ((arg_ty) asdl_seq_GET(((arguments_ty) params_alt)->args, 0)) -> arg;
-    arg_ty attr_arg = (arg_ty) asdl_seq_GET(((arguments_ty) params_alt)->args, 1);
-    identifier attr_id = attr_arg->arg;
-
-    if (attr_arg->bind_attr) {
-        // asdl_expr_seq * self_attr_list = _Py_asdl_expr_seq_new(1, p->arena);
-        
-        expr_ty self_value = _PyAST_Name(self_id, (expr_context_ty) Load,
-                            EXTRA );
-
-        expr_ty lhv = _PyAST_Attribute(self_value, 
-                                        attr_id, 
-                                        (expr_context_ty) Store, 
-                                        EXTRA );
-        expr_ty rhv = _PyAST_Name(attr_id, (expr_context_ty) Load, EXTRA);
-
-    asdl_expr_seq * seq_lhv = (asdl_expr_seq *) _PyPegen_singleton_seq(p, (void *) lhv);
-
-    stmt_ty assign_seq = _PyAST_Assign(seq_lhv, rhv, NULL, EXTRA );
-    new_body = (asdl_stmt_seq *) _PyPegen_seq_insert_in_front(p, (void *) assign_seq, 
-                                            (asdl_seq *) b);
-    }
-}
-}
-            
-            _res = _PyAST_FunctionDef ( n -> v . Name . id , params_alt , new_body , NULL , a , NEW_TYPE_COMMENT ( p , tc ) , EXTRA );
+            _res = _PyAST_FunctionDef ( n -> v . Name . id , ( params ) ? params : CHECK ( arguments_ty , _PyPegen_empty_arguments ( p ) ) , b , NULL , a , NEW_TYPE_COMMENT ( p , tc ) , EXTRA );
             if (_res == NULL && PyErr_Occurred()) {
                 p->error_indicator = 1;
                 p->level--;

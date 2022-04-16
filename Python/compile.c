@@ -373,11 +373,12 @@ static int compiler_slice(struct compiler *, expr_ty);
 
 static int are_all_items_const(asdl_expr_seq *, Py_ssize_t, Py_ssize_t);
 
-
 static int compiler_with(struct compiler *, stmt_ty, int);
 static int compiler_async_with(struct compiler *, stmt_ty, int);
 static int compiler_async_for(struct compiler *, stmt_ty);
 static int validate_keywords(struct compiler *c, asdl_keyword_seq *keywords);
+static int compiler_autoassign_args(struct compiler *c, const struct _arguments *args);
+static int compiler_autoassign_single_arg(struct compiler *, identifier , identifier);
 static int compiler_call_simple_kw_helper(struct compiler *c,
                                           asdl_keyword_seq *keywords,
                                           Py_ssize_t nkwelts);
@@ -2522,6 +2523,32 @@ compiler_check_debug_args(struct compiler *c, arguments_ty args)
 }
 
 static int
+compiler_autoassign_single_arg(struct compiler *c, identifier self_id, identifier attr_id) {
+    if (self_id == NULL){
+        compiler_exit_scope(c);
+        return 0;
+    }
+    expr_ty selfValue = _PyAST_Name(self_id, (expr_context_ty) Load,
+                        0, 0, 0, 0, c->c_arena);
+
+    expr_ty lhv = _PyAST_Attribute(selfValue,
+                                               attr_id,
+                                               (expr_context_ty) Store,
+                                               0, 0, 0, 0, c->c_arena);
+    expr_ty rhv = _PyAST_Name(attr_id, (expr_context_ty) Load, 0, 0, 0, 0, c->c_arena);
+
+
+    asdl_expr_seq *seqLhv = (asdl_expr_seq *) _Py_asdl_generic_seq_new(1, c->c_arena);
+    asdl_seq_SET(seqLhv, 0, lhv);
+    stmt_ty assign_seq = _PyAST_Assign(seqLhv, rhv, NULL, 0, 0, 0, 0, c->c_arena);
+        if (!compiler_visit_stmt((c), (assign_seq))) {
+            compiler_exit_scope(c);
+            return 0;
+        }
+    return 1;
+}
+
+static int
 compiler_function(struct compiler *c, stmt_ty s, int is_async)
 {
     PyCodeObject *co;
@@ -2598,6 +2625,13 @@ compiler_function(struct compiler *c, stmt_ty s, int is_async)
     c->u->u_argcount = asdl_seq_LEN(args->args);
     c->u->u_posonlyargcount = asdl_seq_LEN(args->posonlyargs);
     c->u->u_kwonlyargcount = asdl_seq_LEN(args->kwonlyargs);
+
+
+    if (!compiler_autoassign_args(c, args)){
+        return 0;
+    }
+
+
     for (i = docstring ? 1 : 0; i < asdl_seq_LEN(body); i++) {
         VISIT_IN_SCOPE(c, stmt, (stmt_ty)asdl_seq_GET(body, i));
     }
@@ -2622,6 +2656,52 @@ compiler_function(struct compiler *c, stmt_ty s, int is_async)
     if (!compiler_apply_decorators(c, decos))
         return 0;
     return compiler_nameop(c, name, Store);
+}
+
+static int
+compiler_autoassign_args(struct compiler *c, const struct _arguments *args) {
+    Py_ssize_t posonlyarg_count = asdl_seq_LEN(args->posonlyargs);
+    Py_ssize_t kwonlyarg_count = asdl_seq_LEN(args->kwonlyargs);
+    Py_ssize_t arg_count = asdl_seq_LEN(args->args);
+    Py_ssize_t i;
+    identifier self_id = NULL;
+
+    for (i = 0; i < posonlyarg_count; i++){
+        arg_ty argument = ((arg_ty) asdl_seq_GET(args->posonlyargs, i));
+        if (self_id == NULL) {
+            self_id = argument->arg;
+        } else {
+            if (argument->bind_attr){
+                if (!compiler_autoassign_single_arg(c, self_id, argument->arg)){
+                    return 0;
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < arg_count; i++){
+        arg_ty argument = ((arg_ty) asdl_seq_GET(args->args, i));
+        if (self_id == NULL) {
+            self_id = argument->arg;
+        } else {
+            if (argument->bind_attr){
+                if (!compiler_autoassign_single_arg(c, self_id, argument->arg)){
+                    return 0;
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < kwonlyarg_count; i++){
+        arg_ty argument = ((arg_ty) asdl_seq_GET(args->kwonlyargs, i));
+        if (argument->bind_attr){
+            if (!compiler_autoassign_single_arg(c, self_id, argument->arg)){
+                return 0;
+            }
+        }
+    }
+
+    return 1;
 }
 
 static int
